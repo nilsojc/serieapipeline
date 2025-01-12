@@ -8,3 +8,20 @@ tasks:
       unzip awscliv2.zip
       sudo ./aws/install
       cd $THEIA_WORKSPACE_ROOT
+
+      echo "Configuring AWS credentials from environment variables..."
+      mkdir -p ~/.aws
+      cat > ~/.aws/credentials <<EOL
+      [default]
+      aws_access_key_id=$AWS_ACCESS_KEY_ID
+      aws_secret_access_key=$AWS_SECRET_ACCESS_KEY
+      EOL
+
+      # Optionally, set up default region and output format
+      cat > ~/.aws/config <<EOL
+      [default]
+      region=$AWS_DEFAULT_REGION
+      output=json
+      EOL
+
+      echo "AWS credentials configured successfully."
