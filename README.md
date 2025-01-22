@@ -52,6 +52,7 @@ Finally, we will make sure our dependencies are installed properly.
 pip install flask
 pip install python-dotenv
 pip install requests
+pip install google-search-results
 ```
 
 ***Option 2: Local AWS CLI Setup***
