@@ -158,14 +158,14 @@ aws sts assume-role \
 ```
 This will return temporary AccessKeyId, SecretAccessKey, and SessionToken (valid for 1 hour by default).
 
-4. Use Temporary Credentials
-Export the credentials to your environment:
+We will then use the keys and export them to our environment:
 
-bash
-Copy
+```
 export AWS_ACCESS_KEY_ID="AKIAXXXXXXXXXXXXXXXX"
 export AWS_SECRET_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..."
+export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+```
+
 5. Verify Permissions
 Test the role’s permissions by running commands like:
 
@@ -179,25 +179,7 @@ aws apigateway get-rest-apis
 
 # Test CloudWatch permissions
 aws logs describe-log-groups
-6. Cleanup (Optional)
-Delete the role and policies (if testing):
 
-bash
-Copy
-aws iam delete-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name ECSTaskExecutionPolicy
-
-aws iam delete-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name APIGatewayManagementPolicy
-
-aws iam delete-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name CloudWatchMonitoringPolicy
-
-aws iam delete-role \
-  --role-name SportsDataAPIRole
 
 ```
 
@@ -255,6 +237,28 @@ In this step, we will be setting up our Python file. With this code
 
 
 
+***7. Cleanup***
+
+6. Cleanup (Optional)
+
+We will be deleting the role and policies for clean up.
+
+```
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name ECSTaskExecutionPolicy
+
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name APIGatewayManagementPolicy
+
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name CloudWatchMonitoringPolicy
+
+aws iam delete-role \
+  --role-name SportsDataAPIRole
+```
 
 <h2>Conclusion</h2>
 
