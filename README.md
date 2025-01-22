@@ -70,14 +70,9 @@ aws iam create-role \
   --assume-role-policy-document file://trust-policy.json
 ```  
 
-2. Create Custom Policies
 Instead of attaching managed policies, we’ll create custom policies with only the required permissions.
 
-ECS Task Execution Policy
-Create a file (ecs-task-policy.json) with the minimum permissions for ECS tasks:
-
-bash
-Copy
+```
 echo '{
   "Version": "2012-10-17",
   "Statement": [
@@ -94,19 +89,8 @@ echo '{
     }
   ]
 }' > ecs-task-policy.json
-Attach the policy to the role:
-
-bash
-Copy
-aws iam put-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name ECSTaskExecutionPolicy \
-  --policy-document file://ecs-task-policy.json
-API Gateway Management Policy
-Create a file (api-gateway-policy.json) with the minimum permissions for API Gateway:
-
-bash
-Copy
+```
+```
 echo '{
   "Version": "2012-10-17",
   "Statement": [
@@ -122,19 +106,9 @@ echo '{
     }
   ]
 }' > api-gateway-policy.json
-Attach the policy to the role:
+```
 
-bash
-Copy
-aws iam put-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name APIGatewayManagementPolicy \
-  --policy-document file://api-gateway-policy.json
-CloudWatch Monitoring Policy
-Create a file (cloudwatch-policy.json) with the minimum permissions for CloudWatch:
-
-bash
-Copy
+```
 echo '{
   "Version": "2012-10-17",
   "Statement": [
@@ -150,19 +124,35 @@ echo '{
     }
   ]
 }' > cloudwatch-policy.json
-Attach the policy to the role:
+```
 
-bash
-Copy
+We will then attach the policy to the role:
+
+```
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name ECSTaskExecutionPolicy \
+  --policy-document file://ecs-task-policy.json
+```
+
+```
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name APIGatewayManagementPolicy \
+  --policy-document file://api-gateway-policy.json
+  ```
+
+```
 aws iam put-role-policy \
   --role-name SportsDataAPIRole \
   --policy-name CloudWatchMonitoringPolicy \
   --policy-document file://cloudwatch-policy.json
+```
+
 3. Generate Short-Term Credentials
 Use AWS STS to assume the role and generate temporary credentials:
 
-bash
-Copy
+
 aws sts assume-role \
   --role-arn arn:aws:iam::YOUR_ACCOUNT_ID:role/SportsDataAPIRole \
   --role-session-name SportsDataAPISession
