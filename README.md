@@ -19,6 +19,7 @@ In this project, I built
   - Github Codespaces for Environment
   - Flask
   - IAM: Least privilege policies for ECS task execution and API Gateway.
+  - Cloudwatch
 
 
 
@@ -36,6 +37,182 @@ Integrate with an external Sports API to deliver live scores, player stats, and 
 
 
 <h2>Step by Step Instructions</h2>
+
+***2. Set up IAM Roles***
+
+In this step, we will assign and assume an IAM for ECS, API gateway and Cloudwatch permissions, as well as generate short-term credentials for it.
+
+We will start by creating a Trust Policy
+
+1. Create a Trust Policy
+Create a trust policy file (trust-policy.json) to allow ECS tasks and your account to assume the role:
+
+```
+echo '{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}' > trust-policy.json
+```
+
+We will then create the role:
+
+```
+aws iam create-role \
+  --role-name SportsDataAPIRole \
+  --assume-role-policy-document file://trust-policy.json
+```  
+
+2. Create Custom Policies
+Instead of attaching managed policies, we’ll create custom policies with only the required permissions.
+
+ECS Task Execution Policy
+Create a file (ecs-task-policy.json) with the minimum permissions for ECS tasks:
+
+bash
+Copy
+echo '{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:GetAuthorizationToken",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}' > ecs-task-policy.json
+Attach the policy to the role:
+
+bash
+Copy
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name ECSTaskExecutionPolicy \
+  --policy-document file://ecs-task-policy.json
+API Gateway Management Policy
+Create a file (api-gateway-policy.json) with the minimum permissions for API Gateway:
+
+bash
+Copy
+echo '{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:DELETE"
+      ],
+      "Resource": "arn:aws:apigateway:*::/*"
+    }
+  ]
+}' > api-gateway-policy.json
+Attach the policy to the role:
+
+bash
+Copy
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name APIGatewayManagementPolicy \
+  --policy-document file://api-gateway-policy.json
+CloudWatch Monitoring Policy
+Create a file (cloudwatch-policy.json) with the minimum permissions for CloudWatch:
+
+bash
+Copy
+echo '{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "cloudwatch:PutMetricData"
+      ],
+      "Resource": "*"
+    }
+  ]
+}' > cloudwatch-policy.json
+Attach the policy to the role:
+
+bash
+Copy
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name CloudWatchMonitoringPolicy \
+  --policy-document file://cloudwatch-policy.json
+3. Generate Short-Term Credentials
+Use AWS STS to assume the role and generate temporary credentials:
+
+bash
+Copy
+aws sts assume-role \
+  --role-arn arn:aws:iam::YOUR_ACCOUNT_ID:role/SportsDataAPIRole \
+  --role-session-name SportsDataAPISession
+This returns temporary AccessKeyId, SecretAccessKey, and SessionToken (valid for 1 hour by default).
+
+4. Use Temporary Credentials
+Export the credentials to your environment:
+
+bash
+Copy
+export AWS_ACCESS_KEY_ID="AKIAXXXXXXXXXXXXXXXX"
+export AWS_SECRET_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..."
+5. Verify Permissions
+Test the role’s permissions by running commands like:
+
+bash
+Copy
+# Test ECS permissions
+aws ecs list-tasks --cluster your-cluster-name
+
+# Test API Gateway permissions
+aws apigateway get-rest-apis
+
+# Test CloudWatch permissions
+aws logs describe-log-groups
+6. Cleanup (Optional)
+Delete the role and policies (if testing):
+
+bash
+Copy
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name ECSTaskExecutionPolicy
+
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name APIGatewayManagementPolicy
+
+aws iam delete-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name CloudWatchMonitoringPolicy
+
+aws iam delete-role \
+  --role-name SportsDataAPIRole
+
+```
+
+```
+
 
 ***1. Repo and API configuration***
 
@@ -71,7 +248,7 @@ aws sts get-caller-identity
 ```
 
 
-***2. Set up IAM Roles***
+
 
 
 
