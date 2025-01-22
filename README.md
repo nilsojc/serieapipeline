@@ -15,7 +15,7 @@ In this project, I built
   - Amazon Elastic Container Service
   - Docker
   - API Gateway
-  - API-Football 
+  - SerpAPI
   - Github Codespaces for Environment
   - Flask
   - IAM: Least privilege policies for ECS task execution and API Gateway.
