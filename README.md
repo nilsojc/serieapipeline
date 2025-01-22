@@ -149,14 +149,14 @@ aws iam put-role-policy \
   --policy-document file://cloudwatch-policy.json
 ```
 
-We can now generate Short-Term Credentials for use to our project.
-Use AWS STS to assume the role and generate temporary credentials:
+We can now generate Short-Term Credentials for use to our project with this command:
 
-
+```
 aws sts assume-role \
   --role-arn arn:aws:iam::137068224350:role/SportsDataAPIRole \
   --role-session-name SportsDataAPISession
-This returns temporary AccessKeyId, SecretAccessKey, and SessionToken (valid for 1 hour by default).
+```
+This will return temporary AccessKeyId, SecretAccessKey, and SessionToken (valid for 1 hour by default).
 
 4. Use Temporary Credentials
 Export the credentials to your environment:
