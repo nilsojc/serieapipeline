@@ -79,11 +79,18 @@ echo '{
     {
       "Effect": "Allow",
       "Action": [
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage",
-        "ecr:GetAuthorizationToken",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
+				"ecr:GetDownloadUrlForLayer",
+				"ecr:BatchGetImage",
+				"ecr:GetAuthorizationToken",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents",
+				"ecs:ListTasks",
+				"ecr:CreateRepository",
+				"ecr:InitiateLayerUpload",
+				"ecr:UploadLayerPart",
+				"ecr:CompleteLayerUpload",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:PutImage"
       ],
       "Resource": "*"
     }
@@ -118,7 +125,8 @@ echo '{
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
-        "cloudwatch:PutMetricData"
+        "cloudwatch:PutMetricData",
+        "logs:DescribeLogGroups"
       ],
       "Resource": "*"
     }
@@ -189,23 +197,18 @@ pip install requests
 pip install google-search-results
 ```
 
-We will proceed with installing the Docker CLI and Docker Desktop
+We will proceed with installing the Docker CLI and Docker in Docker
 
-```# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
+curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-20.10.9.tgz -o docker.tgz \
+tar -xzf docker.tgz \
+sudo mv docker/docker /usr/local/bin/ \
+rm -rf docker docker.tgz
+
+ctrl + p > Add Dev Container Conf files > modify your active configuration > click on Docker (Docker-in-Docker)
+```
+
+
 
 ***Option 2: Local AWS CLI Setup***
 
@@ -239,9 +242,9 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 This command is used to log in to Elastic Container Registry, so that we can push or pull our docker image to and from our private ECR repository.
 
 ```
-docker build --platform linux/amd64 -t sports-api .
-docker tag sports-api:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest
-docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest
+docker build -t sports-api .
+docker tag sports-api:latest 137068224350.dkr.ecr.us-east-1.amazonaws.com/sports-api:latest
+docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:latest
 ```
 Make sure to replace the AWS_ACCOUNT_ID with the account number on your AWS account.
 
