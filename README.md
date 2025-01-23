@@ -90,7 +90,13 @@ echo '{
 				"ecr:UploadLayerPart",
 				"ecr:CompleteLayerUpload",
         "ecr:BatchCheckLayerAvailability",
-        "ecr:PutImage"
+        "ecr:PutImage",
+        "ecs:CreateCluster",
+        "iam:DeleteServiceLinkedRole",
+        "ecs:RegisterTaskDefinition",
+				"ecs:DeregisterTaskDefinition",
+				"ecs:RegisterContainerInstance",
+				"ecs:DeregisterContainerInstance"
       ],
       "Resource": "*"
     }
@@ -253,24 +259,25 @@ Make sure to replace the AWS_ACCOUNT_ID with the account number on your AWS acco
 We will begin by creating the ECS cluster necessary to run our containers, we will name it 'sports-api-cluster'.
 
 ```
-aws ecs create-cluster \ 
---cluster-name sports-api-cluster \
---capacity-providers FARGATE \
---default-capacity-provider-strategy capacityProvider=FARGATE,weight=1,base=1
+aws ecs create-cluster --cluster-name sports-api-cluster --capacity-providers FARGATE --default-capacity-provider-strategy '{"capacityProvider":"FARGATE","weight":1,"base":1}'
 ```
 
 ***4. Creating a Task Definition***
 
+In this step we will now be creating a task definition for the cluster.
+
+```
 aws ecs register-task-definition \
   --family sports-api-task \
   --network-mode awsvpc \
   --requires-compatibilities FARGATE \
   --cpu 256 \
   --memory 512 \
+  --execution-role-arn arn:aws:iam::accountid:role/rolename
   --container-definitions '[
     {
       "name": "sports-api-container",
-      "image": "137068224350.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest",
+      "image": "AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sports-api-latest",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -286,10 +293,11 @@ aws ecs register-task-definition \
       ]
     }
   ]'
+```
 
 NOTE: in your local env we will define the value of SPORTS_API_KEY with the key and the AWS_ACCOUNT_ID with the account number of your AWS account.
 
-To confirm our task definition. was done successfully we will check with this command:
+To confirm our task definition was done successfully we will check with this command:
 
 ```
 aws ecs describe-task-definition --task-definition sports-api-task
@@ -313,11 +321,12 @@ aws ec2 create-security-group \
   --port 8080 \
   --cidr 0.0.0.0/0
   ```
+
  Replace <YOUR_VPC_ID> with the VPC ID of the ECS Cluster created.
 
   We will then create our ALB:
 
-  ```
+```
   aws elbv2 create-load-balancer \
   --name sports-api-alb \
   --subnets <SUBNET_ID_1> <SUBNET_ID_2> \
