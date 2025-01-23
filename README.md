@@ -166,19 +166,13 @@ export AWS_SECRET_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ```
 
+You can test the roles permissions by running commands like 
 
-Test the role’s permissions by running commands like:
-
-bash
-Copy
-# Test ECS permissions
+```
 aws ecs list-tasks --cluster your-cluster-name
-
-# Test API Gateway permissions
 aws apigateway get-rest-apis
-
-# Test CloudWatch permissions
 aws logs describe-log-groups
+```
 
 
 ```
@@ -202,6 +196,19 @@ pip install flask
 pip install python-dotenv
 pip install requests
 pip install google-search-results
+```
+
+We will proceed with installing the Docker CLI and Docker Desktop
+
+```# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 ```
 
 ***Option 2: Local AWS CLI Setup***
