@@ -54,7 +54,7 @@ echo '{
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
+        "AWS": "arn:aws:iam::137068224350:user/nilsojcaracciolo"
       },
       "Action": "sts:AssumeRole"
     }
@@ -141,19 +141,16 @@ aws iam put-role-policy \
   --policy-name APIGatewayManagementPolicy \
   --policy-document file://api-gateway-policy.json
   ```
+```
 
 ```
-aws iam put-role-policy \
-  --role-name SportsDataAPIRole \
-  --policy-name CloudWatchMonitoringPolicy \
-  --policy-document file://cloudwatch-policy.json
 ```
 
 We can now generate Short-Term Credentials for use to our project with this command:
 
 ```
 aws sts assume-role \
-  --role-arn arn:aws:iam::137068224350:role/SportsDataAPIRole \
+  --role-arn arn:aws:iam::AWS_ACCOUNT_ID:role/SportsDataAPIRole \
   --role-session-name SportsDataAPISession
 ```
 This will return temporary AccessKeyId, SecretAccessKey, and SessionToken (valid for 1 hour by default).

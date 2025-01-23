@@ -4,7 +4,7 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
+        "AWS": "arn:aws:iam::137068224350:user/nilsojcaracciolo"
       },
       "Action": "sts:AssumeRole"
     }
