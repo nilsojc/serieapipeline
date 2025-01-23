@@ -253,7 +253,7 @@ aws ecs register-task-definition \
   --container-definitions '[
     {
       "name": "sports-api-container",
-      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest",
+      "image": "137068224350.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -264,15 +264,97 @@ aws ecs register-task-definition \
       "environment": [
         {
           "name": "SPORTS_API_KEY",
-          "value": "<YOUR_SPORTSDATA.IO_API_KEY>"
+          "value": ""
         }
       ]
     }
   ]'
 
+NOTE: in your local env we will define the value of SPORTS_API_KEY with the key and the AWS_ACCOUNT_ID with the account number of your AWS account.
 
+To confirm our task definition. was done successfully we will check with this command:
 
+```
+aws ecs describe-task-definition --task-definition sports-api-task
+```
 
+***5. Run the Service with an Application Load Balancer***
+
+In this step we will be running our ecs cluster with an application load balancer (ALB) to evenly distribute the traffic across our application.
+
+We first begin with creating a Security Group (SG) along with traffic rules.
+
+```
+aws ec2 create-security-group \
+  --group-name sports-api-sg \
+  --description "Security group for sports-api-service" \
+  --vpc-id <YOUR_VPC_ID>
+
+  aws ec2 authorize-security-group-ingress \
+  --group-name sports-api-sg \
+  --protocol tcp \
+  --port 8080 \
+  --cidr 0.0.0.0/0
+  ```
+ Replace <YOUR_VPC_ID> with the VPC ID of the ECS Cluster created.
+
+  We will then create our ALB:
+
+  ```
+  aws elbv2 create-load-balancer \
+  --name sports-api-alb \
+  --subnets <SUBNET_ID_1> <SUBNET_ID_2> \
+  --security-groups <SECURITY_GROUP_ID> \
+  --scheme internet-facing \
+  --type application
+```
+
+Replace <SUBNET_ID_1>, <SUBNET_ID_2>, and <SECURITY_GROUP_ID> with your subnet IDs and the security group ID created earlier.
+
+3. Create a Target Group
+Create a target group for the ALB:
+
+bash
+Copy
+aws elbv2 create-target-group \
+  --name sports-api-tg \
+  --protocol HTTP \
+  --port 8080 \
+  --vpc-id <YOUR_VPC_ID> \
+  --health-check-path "/sports"
+Replace <YOUR_VPC_ID> with your VPC ID.
+
+4. Create an ECS Service
+Now, create the ECS service with the ALB:
+
+bash
+Copy
+aws ecs create-service \
+  --cluster <YOUR_CLUSTER_NAME> \
+  --service-name sports-api-service \
+  --task-definition sports-api-task \
+  --desired-count 2 \
+  --launch-type FARGATE \
+  --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_ID_1>,<SUBNET_ID_2>],securityGroups=[<SECURITY_GROUP_ID>],assignPublicIp=ENABLED}" \
+  --load-balancers "targetGroupArn=<TARGET_GROUP_ARN>,containerName=sports-api-container,containerPort=8080"
+Replace:
+
+<YOUR_CLUSTER_NAME> with your ECS cluster name.
+
+<SUBNET_ID_1> and <SUBNET_ID_2> with your subnet IDs.
+
+<SECURITY_GROUP_ID> with the security group ID created earlier.
+
+<TARGET_GROUP_ARN> with the ARN of the target group created in step 3.
+
+Finally, we will verify the service is running:
+
+```
+aws ecs describe-services \
+  --cluster <YOUR_CLUSTER_NAME> \
+  --services sports-api-service
+```
+ 
 ***4. Set up our Python file and test***
 
 In this step, we will be setting up our Python file. With this code
