@@ -207,8 +207,13 @@ sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
 
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
 ***Option 2: Local AWS CLI Setup***
@@ -226,8 +231,44 @@ We then do `AWS configure` and enter our access and secret key along with the re
 aws sts get-caller-identity
 ```
 
+***3. Creating the ECS Cluster***
 
+We will begin by creating the ECS cluster necessary to run our containers, we will name it 'sports-api-cluster'.
 
+```
+aws ecs create-cluster \ 
+--cluster-name sports-api-cluster \
+--capacity-providers FARGATE \
+--default-capacity-provider-strategy capacityProvider=FARGATE,weight=1,base=1
+```
+
+***4. Creating a Task Definition***
+
+aws ecs register-task-definition \
+  --family sports-api-task \
+  --network-mode awsvpc \
+  --requires-compatibilities FARGATE \
+  --cpu 256 \
+  --memory 512 \
+  --container-definitions '[
+    {
+      "name": "sports-api-container",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp",
+          "appProtocol": "http"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SPORTS_API_KEY",
+          "value": "<YOUR_SPORTSDATA.IO_API_KEY>"
+        }
+      ]
+    }
+  ]'
 
 
 

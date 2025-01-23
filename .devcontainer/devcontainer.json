@@ -12,4 +12,12 @@
   }
 }
 
-
+{
+  "name": "Docker-in-Docker",
+  "dockerFile": "Dockerfile",
+  "runArgs": ["--privileged"],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "postCreateCommand": "docker --version"
+}
