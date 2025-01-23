@@ -9,8 +9,8 @@ SERP_API_URL = "https://serpapi.com/search.json"
 SERP_API_KEY = os.getenv("SPORTS_API_KEY")
 
 @app.route('/sports', methods=['GET'])
-def get_nfl_schedule():
-    #Fetches the NFL schedule from SerpAPI and returns it as JSON
+def get_serieA_schedule():
+    #Fetches the Serie A schedule from SerpAPI and returns it as JSON
     try:
         # Query SerpAPI
         params = {
@@ -46,7 +46,7 @@ def get_nfl_schedule():
             }
             formatted_games.append(game_info)
 
-        return jsonify({"message": "NFL schedule fetched successfully.", "games": formatted_games}), 200
+        return jsonify({"message": "Serie A schedule fetched successfully.", "games": formatted_games}), 200
     
     except Exception as e:
         return jsonify({"message": "An error occurred.", "error": str(e)}), 500
