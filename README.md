@@ -174,12 +174,6 @@ aws apigateway get-rest-apis
 aws logs describe-log-groups
 ```
 
-
-```
-
-```
-
-
 ***1. Repo and API configuration***
 
 We will begin by setting up the environment and code that we will be utilizing. In this instance, we will use `Github Codespaces` to create a new workspace and do the commands from there. We will be setting up an account with RapidAPI for our Serie A Sports data.
@@ -230,6 +224,29 @@ We then do `AWS configure` and enter our access and secret key along with the re
 ```
 aws sts get-caller-identity
 ```
+
+***2. Building our Docker container on Elastic Container Service***
+
+In this step we will show how to create a repository in ECR so that we can store and build our docker image.
+
+First, we create a repository in ECS:
+```
+aws ecr create-repository --repository-name sports-api --region us-east-1
+```
+Then, We will authenticate the ECR build and push our docker image.
+
+```
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
+```
+
+This command is used to log in to Elastic Container Registry, so that we can push or pull our docker image to and from our private ECR repository.
+
+```
+docker build --platform linux/amd64 -t sports-api .
+docker tag sports-api:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest
+docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:sports-api-latest
+```
+Make sure to replace the AWS_ACCOUNT_ID with the account number on your AWS account.
 
 ***3. Creating the ECS Cluster***
 
@@ -311,24 +328,21 @@ aws ec2 create-security-group \
 
 Replace <SUBNET_ID_1>, <SUBNET_ID_2>, and <SECURITY_GROUP_ID> with your subnet IDs and the security group ID created earlier.
 
-3. Create a Target Group
-Create a target group for the ALB:
+Next, create a Target Group:
 
-bash
-Copy
+```
 aws elbv2 create-target-group \
   --name sports-api-tg \
   --protocol HTTP \
   --port 8080 \
   --vpc-id <YOUR_VPC_ID> \
   --health-check-path "/sports"
-Replace <YOUR_VPC_ID> with your VPC ID.
+```
 
-4. Create an ECS Service
+NOTE: Make sure to replace <YOUR_VPC_ID> with your VPC ID.
+
 Now, create the ECS service with the ALB:
 
-bash
-Copy
 aws ecs create-service \
   --cluster <YOUR_CLUSTER_NAME> \
   --service-name sports-api-service \
@@ -355,21 +369,71 @@ aws ecs describe-services \
   --services sports-api-service
 ```
  
-***4. Set up our Python file and test***
+***6. Configure API Gateway and Final Test***
 
-In this step, we will be setting up our Python file. With this code
+In this step we will configure the API gateway in order for us to test the endpoint and return a result.
 
-![image](/assets/image2.png)
+```
+aws apigateway create-rest-api --name "Sports API Gateway"
+```
 
+This creates a new REST API and returns the apiId. Make sure to note the apiId for the next steps.
 
-***6.  Running the Script - Final Result.***
+```
+aws apigateway get-resources --rest-api-id <apiId>
+```
 
+This lists the resources of the API. Note the id of the root resource (/).
 
+Now, we will be creating a resource for api gateway called /sports
 
+```
+aws apigateway create-resource \
+--rest-api-id <apiId> \
+--parent-id <rootResourceId> \
+--path-part sports
+```
+
+Then, we will create a GET method for /sports
+
+```
+aws apigateway put-method \
+--rest-api-id <apiId> \
+--resource-id <sportsResourceId> \
+--http-method GET \
+--authorization-type NONE
+```
+
+Next, setting up HTTP proxy integration.
+
+```
+aws apigateway put-integration \
+--rest-api-id <apiId> \
+--resource-id <sportsResourceId> \
+--http-method GET \
+--type HTTP_PROXY \
+--integration-http-method GET \
+--uri http://sports-api-alb-<AWS_ACCOUNT_ID>.us-east-1.elb.amazonaws.com/sports
+```
+
+Then, deploy our API to a prod stage.
+
+```
+aws apigateway create-deployment \
+--rest-api-id <apiId> \
+--stage-name prod
+```
+
+Finally, we will get a return of the endpoint URL for the `prod` stage.
+
+```
+aws apigateway get-stages \
+--rest-api-id <apiId> \
+--query "item[?stageName=='prod'].invokeUrl" \
+--output text
+```
 
 ***7. Cleanup***
-
-6. Cleanup (Optional)
 
 We will be deleting the role and policies for clean up.
 
@@ -390,6 +454,7 @@ aws iam delete-role \
   --role-name SportsDataAPIRole
 ```
 
+
 <h2>Conclusion</h2>
 
-In this project, I learned how you can leverage a Python script to grab API data, send a query to a database and parse it accordingly with Amazon Athena and Glue. I also explored it further by accessing the data generated from the api and using it to generate data visualizers that can display a table or a graph.
+In this project, I 
