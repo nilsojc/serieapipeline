@@ -309,6 +309,7 @@ aws elbv2 create-listener \
 
 Now, create the ECS service with the ALB:
 
+```
 aws ecs create-service \
   --cluster <YOUR_CLUSTER_NAME> \
   --service-name sports-api-service \
@@ -317,6 +318,7 @@ aws ecs create-service \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_ID_1>,<SUBNET_ID_2>],securityGroups=[<SECURITY_GROUP_ID>],assignPublicIp=ENABLED}" \
   --load-balancers "targetGroupArn=<TARGET_GROUP_ARN>,containerName=sports-api-container,containerPort=8080"
+```
 
 
 Make sure that <YOUR_CLUSTER_NAME> is replaced with your ECS cluster name, <SUBNET_ID_1> and <SUBNET_ID_2> with your subnet IDs, <SECURITY_GROUP_ID> with the security group ID created earlier and <TARGET_GROUP_ARN> with the ARN of the target group created. 
@@ -411,7 +413,7 @@ We now have an API created that our users can request our Soccer Serie A request
 
 We will be deleting the role and policies for clean up.
 
-Run the Bash script on the src folder to delete all of our resources created.
+Run the Bash script on the repository to delete all of our resources created.
 
 ```
 aws iam delete-role-policy \
@@ -440,4 +442,4 @@ aws ec2 delete-security-group --group-id sg-0524853978308bf6a
 
 <h2>Conclusion</h2>
 
-In this project, I 
+In this project, I learned how to leverage a web flask application with creating and deploying a docker container to be used and managed by an Elastic Load Balancer which will route the traffic of our containers and display API data of our live soccer matches from the italian soccer league. We also learned how to create our own API with API gateway to have users be able to 
