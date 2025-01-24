@@ -292,7 +292,7 @@ aws ecs register-task-definition \
   --container-definitions '[
     {
       "name": "sports-api-container",
-      "image": "AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sports-api",
+      "image": "AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sports-api:latest",
       "portMappings": [
         {
           "containerPort": 8080,
