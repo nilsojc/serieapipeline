@@ -442,4 +442,4 @@ aws ec2 delete-security-group --group-id sg-0524853978308bf6a
 
 <h2>Conclusion</h2>
 
-In this project, I learned how to leverage a web flask application with creating and deploying a docker container to be used and managed by an Elastic Load Balancer which will route the traffic of our containers and display API data of our live soccer matches from the italian soccer league. We also learned how to create our own API with API gateway to have users be able to 
+In this project, I learned how to leverage a web flask application with creating and deploying a docker container to be used and managed by an Elastic Load Balancer which will route the traffic of our containers and display API data of our live soccer matches from the italian soccer league. We also learned how to create our own API with API gateway to have users be able to request soccer schedules.
