@@ -70,90 +70,8 @@ aws iam create-role \
   --assume-role-policy-document file://trust-policy.json
 ```  
 
-Instead of attaching managed policies, we’ll create custom policies with only the required permissions.
+Instead of attaching managed policies, we’ll create custom policies with only the required permissions. Files `api-gateway-policy.json, cloudwatch-policy.json and ecs-task-policy.json` will be used for this example. You can also attach the json on the AWS console.
 
-```
-echo '{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-				"ecr:GetDownloadUrlForLayer",
-				"ecr:BatchGetImage",
-				"ecr:GetAuthorizationToken",
-				"logs:CreateLogStream",
-				"logs:PutLogEvents",
-				"ecs:ListTasks",
-				"ecr:CreateRepository",
-				"ecr:InitiateLayerUpload",
-				"ecr:UploadLayerPart",
-				"ecr:CompleteLayerUpload",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:PutImage",
-        "ecs:CreateCluster",
-        "iam:DeleteServiceLinkedRole",
-        "ecs:RegisterTaskDefinition",
-				"ecs:DeregisterTaskDefinition",
-				"ecs:RegisterContainerInstance",
-				"ecs:DeregisterContainerInstance",
-        "ecs:DescribeTaskDefinition",
-        "iam:PassRole",
-        "ec2:CreateSecurityGroup",
-        "ec2:AuthorizeSecurityGroupIngress",
-				"elasticloadbalancing:CreateLoadBalancer",
-				"iam:CreateServiceLinkedRole",
-        "ec2:DescribeAccountAttributes",
-        "elasticloadbalancing:CreateTargetGroup",
-        "ec2:Describe*",
-        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-        "elasticloadbalancing:DeregisterTargets",
-        "elasticloadbalancing:Describe*",
-        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-        "elasticloadbalancing:RegisterTargets",
-        "ecs:DescribeServices"
-      ],
-      "Resource": "*"
-    }
-  ]
-}' > ecs-task-policy.json
-```
-```
-echo '{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "apigateway:GET",
-        "apigateway:POST",
-        "apigateway:PUT",
-        "apigateway:DELETE"
-      ],
-      "Resource": "arn:aws:apigateway:*::/*"
-    }
-  ]
-}' > api-gateway-policy.json
-```
-
-```
-echo '{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "cloudwatch:PutMetricData",
-        "logs:DescribeLogGroups"
-      ],
-      "Resource": "*"
-    }
-  ]
-}' > cloudwatch-policy.json
-```
 
 We will then attach the policy to the role:
 
@@ -169,10 +87,13 @@ aws iam put-role-policy \
   --role-name SportsDataAPIRole \
   --policy-name APIGatewayManagementPolicy \
   --policy-document file://api-gateway-policy.json
-  ```
 ```
 
 ```
+aws iam put-role-policy \
+  --role-name SportsDataAPIRole \
+  --policy-name CloudWatchMonitoringPolicy \
+  --policy-document file://cloudwatch-policy.json
 ```
 
 We can now generate Short-Term Credentials for use to our project with this command:
@@ -225,9 +146,12 @@ curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-20.10.9
 tar -xzf docker.tgz \
 sudo mv docker/docker /usr/local/bin/ \
 rm -rf docker docker.tgz
-
-ctrl + p > Add Dev Container Conf files > modify your active configuration > click on Docker (Docker-in-Docker)
 ```
+
+ctrl + p on Github Codespace > Add Dev Container Conf files > modify your active configuration > click on Docker (Docker-in-Docker)
+
+![image](/assets/image1.png)
+
 
 
 
@@ -274,7 +198,7 @@ Make sure to replace the AWS_ACCOUNT_ID with the account number on your AWS acco
 We will begin by creating the ECS cluster necessary to run our containers, we will name it 'sports-api-cluster'.
 
 ```
-aws ecs create-cluster --cluster-name sports-api-cluster --capacity-providers FARGATE --default-capacity-provider-strategy '{"capacityProvider":"FARGATE","weight":1,"base":1}'
+aws ecs create-cluster --cluster-name sports-api-cluster --capacity-providers FARGATE --default-capacity-provider-strategy '{"capacityProvider":"FARGATE","weight":0,"base":1}'
 ```
 
 ***4. Creating a Task Definition***
@@ -296,6 +220,7 @@ aws ecs register-task-definition \
       "portMappings": [
         {
           "containerPort": 8080,
+          "hostPort": 8080,
           "protocol": "tcp",
           "appProtocol": "http"
         }
@@ -326,28 +251,29 @@ We first begin with creating a Security Group (SG) along with traffic rules.
 
 ```
 aws ec2 create-security-group \
-  --group-name sports-api-sg \
-  --description "Security group for sports-api-service" \
+  --group-name sports-api-alb-sg \
+  --description "Security group for sports-api-alb allowing all TCP traffic" \
   --vpc-id <YOUR_VPC_ID>
 
-  aws ec2 authorize-security-group-ingress \
-  --group-name sports-api-sg \
+aws ec2 authorize-security-group-ingress \
+  --group-name sports-api-alb-sg \
   --protocol tcp \
-  --port 8080,80 \
+  --port 0-65535 \
   --cidr 0.0.0.0/0
-  ```
+```
 
  Replace <YOUR_VPC_ID> with the VPC ID of the ECS Cluster created.
 
-  We will then create our ALB:
+We will then create our ALB:
 
 ```
-  aws elbv2 create-load-balancer \
+aws elbv2 create-load-balancer \
   --name sports-api-alb \
   --subnets <SUBNET_ID_1> <SUBNET_ID_2> \
   --security-groups <SECURITY_GROUP_ID> \
   --scheme internet-facing \
-  --type application
+  --type application \
+  --ip-address-type ipv4
 ```
 
 Replace <SUBNET_ID_1>, <SUBNET_ID_2>, and <SECURITY_GROUP_ID> with your subnet IDs and the security group ID created earlier.
@@ -358,13 +284,28 @@ Next, create a Target Group:
 aws elbv2 create-target-group \
   --name sports-api-tg \
   --protocol HTTP \
-  --port 8080 \
+  --port 80 \
   --vpc-id <YOUR_VPC_ID> \
-  --target-type ip
+  --health-check-path /sports \
+  --health-check-protocol HTTP \
+  --health-check-interval-seconds 30 \
+  --health-check-timeout-seconds 5 \
+  --healthy-threshold-count 3 \
+  --unhealthy-threshold-count 3
   --health-check-path "/sports"
 ```
-
 NOTE: Make sure to replace <YOUR_VPC_ID> with your VPC ID.
+
+
+We also want to make sure our load balancer reaches the traffic on the target group. We will create a listener for it:
+
+```
+aws elbv2 create-listener \
+  --load-balancer-arn <LOAD_BALANCER_ARN> \
+  --protocol HTTP \
+  --port 80 \
+  --default-actions Type=forward,TargetGroupArn=<TARGET_GROUP_ARN>
+```
 
 Now, create the ECS service with the ALB:
 
@@ -378,13 +319,7 @@ aws ecs create-service \
   --load-balancers "targetGroupArn=<TARGET_GROUP_ARN>,containerName=sports-api-container,containerPort=8080"
 
 
-Make sure that <YOUR_CLUSTER_NAME> is replaced with your ECS cluster name.
-
-<SUBNET_ID_1> and <SUBNET_ID_2> with your subnet IDs.
-
-<SECURITY_GROUP_ID> with the security group ID created earlier.
-
-<TARGET_GROUP_ARN> with the ARN of the target group created.
+Make sure that <YOUR_CLUSTER_NAME> is replaced with your ECS cluster name, <SUBNET_ID_1> and <SUBNET_ID_2> with your subnet IDs, <SECURITY_GROUP_ID> with the security group ID created earlier and <TARGET_GROUP_ARN> with the ARN of the target group created. 
 
 
 Finally, we will verify the service is running:
@@ -394,6 +329,10 @@ aws ecs describe-services \
   --cluster <YOUR_CLUSTER_NAME> \
   --services sports-api-service
 ```
+
+Finally, we will test the end result of the ALB. The load balancer will point to an http address for us to test the API data that is inside the container.
+
+![image](/assets/image2.png)
  
 ***6. Configure API Gateway and Final Test***
 
@@ -458,10 +397,21 @@ aws apigateway get-stages \
 --query "item[?stageName=='prod'].invokeUrl" \
 --output text
 ```
+You can always check the invoke url on the console as well to check and try. It's always good practice to use both the CLI and Console to check back on the results. 
+
+It will then display the data that is requested from the API we created.
+
+![image](/assets/image3.png)
+
+
+We now have an API created that our users can request our Soccer Serie A requests from!
+
 
 ***7. Cleanup***
 
 We will be deleting the role and policies for clean up.
+
+Run the Bash script on the src folder to delete all of our resources created.
 
 ```
 aws iam delete-role-policy \
@@ -478,7 +428,14 @@ aws iam delete-role-policy \
 
 aws iam delete-role \
   --role-name SportsDataAPIRole
+
+aws elbv2 delete-load-balancer --load-balancer-arn sports-api-alb-production-675789625.us-east-1.elb.amazonaws.com
+aws elbv2 delete-target-group --target-group-arn arn:aws:elasticloadbalancing:us-east-1:137068224350:targetgroup/sports-api-target-group-prod/9d7b089432892ecc
+aws ecs delete-cluster --cluster sports-api-cluster
+aws ecr delete-repository --repository-name sports-api --force
+aws ec2 delete-security-group --group-id sg-0524853978308bf6a
 ```
+
 
 
 <h2>Conclusion</h2>

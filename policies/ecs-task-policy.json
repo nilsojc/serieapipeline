@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+				"ecr:GetDownloadUrlForLayer",
+				"ecr:BatchGetImage",
+				"ecr:GetAuthorizationToken",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents",
+				"ecs:ListTasks",
+				"ecr:CreateRepository",
+				"ecr:InitiateLayerUpload",
+				"ecr:UploadLayerPart",
+				"ecr:CompleteLayerUpload",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:PutImage",
+        "ecs:CreateCluster",
+        "iam:DeleteServiceLinkedRole",
+        "ecs:RegisterTaskDefinition",
+				"ecs:DeregisterTaskDefinition",
+				"ecs:RegisterContainerInstance",
+				"ecs:DeregisterContainerInstance",
+        "ecs:DescribeTaskDefinition",
+        "iam:PassRole",
+        "ec2:CreateSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+				"elasticloadbalancing:CreateLoadBalancer",
+				"iam:CreateServiceLinkedRole",
+        "ec2:DescribeAccountAttributes",
+        "elasticloadbalancing:CreateTargetGroup",
+        "ec2:Describe*",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:Describe*",
+        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:RegisterTargets",
+        "ecs:DescribeServices"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
