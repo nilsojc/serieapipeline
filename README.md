@@ -292,7 +292,7 @@ aws ecs register-task-definition \
   --container-definitions '[
     {
       "name": "sports-api-container",
-      "image": "AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sports-api-latest",
+      "image": "AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sports-api",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -303,7 +303,7 @@ aws ecs register-task-definition \
       "environment": [
         {
           "name": "SPORTS_API_KEY",
-          "value": ""
+          "value": "YOR_API_KEY"
         }
       ]
     }
