@@ -96,7 +96,22 @@ echo '{
         "ecs:RegisterTaskDefinition",
 				"ecs:DeregisterTaskDefinition",
 				"ecs:RegisterContainerInstance",
-				"ecs:DeregisterContainerInstance"
+				"ecs:DeregisterContainerInstance",
+        "ecs:DescribeTaskDefinition",
+        "iam:PassRole",
+        "ec2:CreateSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+				"elasticloadbalancing:CreateLoadBalancer",
+				"iam:CreateServiceLinkedRole",
+        "ec2:DescribeAccountAttributes",
+        "elasticloadbalancing:CreateTargetGroup",
+        "ec2:Describe*",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:Describe*",
+        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:RegisterTargets",
+        "ecs:DescribeServices"
       ],
       "Resource": "*"
     }
@@ -318,7 +333,7 @@ aws ec2 create-security-group \
   aws ec2 authorize-security-group-ingress \
   --group-name sports-api-sg \
   --protocol tcp \
-  --port 8080 \
+  --port 8080,80 \
   --cidr 0.0.0.0/0
   ```
 
@@ -345,6 +360,7 @@ aws elbv2 create-target-group \
   --protocol HTTP \
   --port 8080 \
   --vpc-id <YOUR_VPC_ID> \
+  --target-type ip
   --health-check-path "/sports"
 ```
 
@@ -360,15 +376,16 @@ aws ecs create-service \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[<SUBNET_ID_1>,<SUBNET_ID_2>],securityGroups=[<SECURITY_GROUP_ID>],assignPublicIp=ENABLED}" \
   --load-balancers "targetGroupArn=<TARGET_GROUP_ARN>,containerName=sports-api-container,containerPort=8080"
-Replace:
 
-<YOUR_CLUSTER_NAME> with your ECS cluster name.
+
+Make sure that <YOUR_CLUSTER_NAME> is replaced with your ECS cluster name.
 
 <SUBNET_ID_1> and <SUBNET_ID_2> with your subnet IDs.
 
 <SECURITY_GROUP_ID> with the security group ID created earlier.
 
-<TARGET_GROUP_ARN> with the ARN of the target group created in step 3.
+<TARGET_GROUP_ARN> with the ARN of the target group created.
+
 
 Finally, we will verify the service is running:
 
@@ -386,7 +403,7 @@ In this step we will configure the API gateway in order for us to test the endpo
 aws apigateway create-rest-api --name "Sports API Gateway"
 ```
 
-This creates a new REST API and returns the apiId. Make sure to note the apiId for the next steps.
+This creates a new REST API and returns the apiId. Make sure to note the apiId for the next steps:
 
 ```
 aws apigateway get-resources --rest-api-id <apiId>
