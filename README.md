@@ -155,7 +155,7 @@ ctrl + p on Github Codespace > Add Dev Container Conf files > modify your active
 
 
 
-***Option 2: Local AWS CLI Setup***
+***(Optional): Local AWS CLI Setup***
 
 NOTE: Keep in mind this is for a Linux environment, check the AWS documentation to install it in your supported OS.
 
@@ -169,6 +169,7 @@ We then do `AWS configure` and enter our access and secret key along with the re
 ```
 aws sts get-caller-identity
 ```
+
 
 ***2. Building our Docker container on Elastic Container Service***
 
@@ -413,6 +414,7 @@ It will then display the data that is requested from the API we created.
 We now have an API created that our users can request our Soccer Serie A requests from!
 
 I wanted to expand this a little bit by including a web server with the API data generated from serp api to serve over a simple HTML/CSS image!
+
 
 ![image](/assets/image4.png)
 
