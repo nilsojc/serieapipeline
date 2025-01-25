@@ -38,14 +38,13 @@ Integrate with an external Sports API to deliver live scores, player stats, and 
 
 <h2>Step by Step Instructions</h2>
 
-***2. Set up IAM Roles***
+***1. Set up IAM Roles***
 
 In this step, we will assign and assume an IAM for ECS, API gateway and Cloudwatch permissions, as well as generate short-term credentials for it.
 
-We will start by creating a Trust Policy
 
-1. Create a Trust Policy
-Create a trust policy file (trust-policy.json) to allow ECS tasks and your account to assume the role:
+We will start by creating a Trust Policy file (trust-policy.json) to allow ECS tasks and your account to assume the role:
+
 
 ```
 echo '{
@@ -121,7 +120,7 @@ aws apigateway get-rest-apis
 aws logs describe-log-groups
 ```
 
-***1. Repo and API configuration***
+***2. Repo and API configuration***
 
 We will begin by setting up the environment and code that we will be utilizing. In this instance, we will use `Github Codespaces` to create a new workspace and do the commands from there. We will be setting up an account with RapidAPI for our Serie A Sports data.
 
@@ -171,7 +170,7 @@ aws sts get-caller-identity
 ```
 
 
-***2. Building our Docker container on Elastic Container Service***
+***3. Building our Docker container on Elastic Container Service***
 
 In this step we will show how to create a repository in ECR so that we can store and build our docker image.
 
@@ -194,7 +193,7 @@ docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/sports-api:latest
 ```
 Make sure to replace the AWS_ACCOUNT_ID with the account number on your AWS account.
 
-***3. Creating the ECS Cluster***
+***4. Creating the ECS Cluster***
 
 We will begin by creating the ECS cluster necessary to run our containers, we will name it 'sports-api-cluster'.
 
@@ -202,7 +201,7 @@ We will begin by creating the ECS cluster necessary to run our containers, we wi
 aws ecs create-cluster --cluster-name sports-api-cluster --capacity-providers FARGATE --default-capacity-provider-strategy '{"capacityProvider":"FARGATE","weight":0,"base":1}'
 ```
 
-***4. Creating a Task Definition***
+***5. Creating a Task Definition***
 
 In this step we will now be creating a task definition for the cluster.
 
@@ -244,7 +243,7 @@ To confirm our task definition was done successfully we will check with this com
 aws ecs describe-task-definition --task-definition sports-api-task
 ```
 
-***5. Run the Service with an Application Load Balancer***
+***6. Run the Service with an Application Load Balancer***
 
 In this step we will be running our ecs cluster with an application load balancer (ALB) to evenly distribute the traffic across our application.
 
@@ -341,7 +340,7 @@ Same result but this time with deploying a simple HTML/CSS structure onto the co
  ![image](/assets/image5.png)
 
  
-***6. Configure API Gateway and Final Test***
+***7. Configure API Gateway and Final Test***
 
 In this step we will configure the API gateway in order for us to test the endpoint and return a result.
 
@@ -419,7 +418,7 @@ I wanted to expand this a little bit by including a web server with the API data
 ![image](/assets/image4.png)
 
 
-***7. Cleanup***
+***8. Cleanup***
 
 We will be deleting the role and policies for clean up.
 
