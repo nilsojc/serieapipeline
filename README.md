@@ -335,6 +335,10 @@ aws ecs describe-services \
 Finally, we will test the end result of the ALB. The load balancer will point to an http address for us to test the API data that is inside the container.
 
 ![image](/assets/image2.png)
+
+Same result but this time with deploying a simple HTML/CSS structure onto the container:
+ ![image](/assets/image5.png)
+
  
 ***6. Configure API Gateway and Final Test***
 
