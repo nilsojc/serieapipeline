@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serie A Schedule</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Serie A Schedule</h1>
+    <div id="schedule">
+        <!-- Schedule data will be inserted here -->
+    </div>
+
+    <script>
+        // Fetch data from the Flask API
+        fetch('/sports')
+            .then(response => response.json())
+            .then(data => {
+                const scheduleContainer = document.getElementById('schedule');
+                data.games.forEach(game => {
+                    const gameCard = document.createElement('div');
+                    gameCard.className = 'game-card';
+
+                    gameCard.innerHTML = `
+                        <div class="date">${game.date}</div>
+                        <div class="teams">
+                            <div class="team">
+                                <img src="logos/${game.home_team.toLowerCase()}.png" alt="${game.home_team}" onerror="this.style.display='none'">
+                                <span>${game.home_team}</span>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <img src="logos/${game.away_team.toLowerCase()}.png" alt="${game.away_team}" onerror="this.style.display='none'">
+                                <span>${game.away_team}</span>
+                            </div>
+                        </div>
+                        <div class="time">${game.time}</div>
+                        <div class="venue">${game.venue}</div>
+                    `;
+                    scheduleContainer.appendChild(gameCard);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading the schedule:', error);
+                document.getElementById('schedule').innerHTML = '<p>Failed to load schedule. Please try again later.</p>';
+            });
+    </script>
+</body>
+</html>
