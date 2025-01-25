@@ -6,7 +6,7 @@
 
 This is part of the fourth project in the 30-day DevOps challenge! 
 
-In this project, I built
+In this project, I built a containerized API management system for querying sports data by leveraging a Flask application within docker containers, to be deployed to an application load balancer (ALB) which will route the traffic of the API requests for getting Real-time Serie A Soccer League game schedules, along with the creation of our own set of requests of API through API gateway!
 
 
 <h2>Environments and Technologies Used</h2>
