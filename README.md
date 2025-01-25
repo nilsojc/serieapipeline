@@ -408,6 +408,10 @@ It will then display the data that is requested from the API we created.
 
 We now have an API created that our users can request our Soccer Serie A requests from!
 
+I wanted to expand this a little bit by including a web server with the API data generated from serp api to serve over a simple HTML/CSS image!
+
+![image](/assets/image4.png)
+
 
 ***7. Cleanup***
 
